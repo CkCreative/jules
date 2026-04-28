@@ -5,11 +5,12 @@ import '../models/models.dart';
 class JulesRepository {
   final ApiClient _apiClient;
   final LocalStorageService _local;
+  final String accountId;
 
-  JulesRepository(this._apiClient, this._local);
+  JulesRepository(this._apiClient, this._local, {required this.accountId});
 
   Future<List<Session>> getSessions({bool forceRefresh = false}) async {
-    return _local.getSessions();
+    return _local.getSessions(accountId: accountId);
   }
 
   Future<SessionsResponse> syncSessions({
@@ -22,12 +23,12 @@ class JulesRepository {
     final response = await _apiClient.get(url);
     final sessionsResponse = SessionsResponse.fromJson(response);
 
-    await _local.saveSessions(sessionsResponse.sessions);
+    await _local.saveSessions(sessionsResponse.sessions, accountId: accountId);
     return sessionsResponse;
   }
 
   Future<List<Activity>> getSessionActivities(String sessionId) async {
-    return _local.getActivities(sessionId);
+    return _local.getActivities(sessionId, accountId: accountId);
   }
 
   Future<List<Activity>> syncSessionActivities(
@@ -44,8 +45,8 @@ class JulesRepository {
         .map((json) => Activity.fromJson((json as Map).cast<String, dynamic>()))
         .toList();
 
-    await _local.saveActivities(sessionId, activities);
-    return _local.getActivities(sessionId);
+    await _local.saveActivities(sessionId, activities, accountId: accountId);
+    return _local.getActivities(sessionId, accountId: accountId);
   }
 
   Future<Session> createSession(
@@ -62,7 +63,7 @@ class JulesRepository {
       },
     });
     final session = Session.fromJson(response);
-    await _local.saveSession(session);
+    await _local.saveSession(session, accountId: accountId);
     return session;
   }
 
@@ -86,7 +87,7 @@ class JulesRepository {
   Future<Session> getSession(String sessionId) async {
     final response = await _apiClient.get('/sessions/$sessionId');
     final session = Session.fromJson(response);
-    await _local.saveSession(session);
+    await _local.saveSession(session, accountId: accountId);
     return session;
   }
 

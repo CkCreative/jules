@@ -17,37 +17,49 @@ class DiffPanel extends StatelessWidget {
         .where((a) => a.artifacts.any((art) => art.changeSet != null))
         .toList() ?? [];
 
-    if (codeActivities.isEmpty) {
-      return Center(
-        child: Text(
-          "No code changes in this session",
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
-        ),
-      );
-    }
-
     // Use the latest activity with changes
-    final latestActivity = codeActivities.last;
-    final changeSets = latestActivity.artifacts
-        .where((art) => art.changeSet != null)
-        .map((art) => art.changeSet!)
-        .toList();
-
+    final List<ChangeSet> changeSets = codeActivities.isEmpty 
+        ? [] 
+        : codeActivities.last.artifacts
+            .where((art) => art.changeSet != null)
+            .map((art) => art.changeSet!)
+            .toList();
+    
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          _buildHeader(context, changeSets, provider),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: changeSets.length,
-              itemBuilder: (context, index) {
-                return FileDiffWidget(changeSet: changeSets[index]);
-              },
-            ),
+          // Permanent pane separator
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            child: Container(color: Theme.of(context).dividerColor),
           ),
+          if (codeActivities.isEmpty)
+            Center(
+              child: Text(
+                "No code changes in this session",
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, changeSets, provider),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    itemCount: changeSets.length,
+                    itemBuilder: (context, index) {
+                      return FileDiffWidget(changeSet: changeSets[index]);
+                    },
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

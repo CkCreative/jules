@@ -25,21 +25,21 @@ void main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
   );
-  
+
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
   });
-  
+
   final localStorage = LocalStorageService();
   await localStorage.init();
-  
+
   final settings = SettingsProvider();
   await settings.init();
-  
+
   final auth = AuthProvider();
   await auth.init();
-  
+
   final connectivity = ConnectivityService();
 
   runApp(
@@ -49,13 +49,22 @@ void main() async {
         Provider.value(value: connectivity),
         ChangeNotifierProvider.value(value: settings),
         ChangeNotifierProvider.value(value: auth),
-        ChangeNotifierProxyProvider3<AuthProvider, LocalStorageService, ConnectivityService, ChatProvider>(
+        ChangeNotifierProxyProvider3<
+          AuthProvider,
+          LocalStorageService,
+          ConnectivityService,
+          ChatProvider
+        >(
           create: (_) => ChatProvider(),
           update: (_, auth, local, connectivity, chat) {
             if (chat == null) return ChatProvider();
             chat.setDependencies(local, connectivity);
-            if (auth.isAuthenticated && auth.apiKey != null) {
-              chat.updateClient(ApiClient(apiKey: auth.apiKey!));
+            final accountId = auth.activeAccountId;
+            final apiKey = auth.apiKey;
+            if (auth.isAuthenticated && accountId != null && apiKey != null) {
+              chat.updateClient(ApiClient(apiKey: apiKey), accountId);
+            } else {
+              chat.clearClient();
             }
             return chat;
           },
@@ -72,12 +81,18 @@ class JulesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeOption = context.select((SettingsProvider s) => s.themeMode);
-    
+
     ThemeMode mode;
     switch (themeOption) {
-      case ThemeModeOption.light: mode = ThemeMode.light; break;
-      case ThemeModeOption.dark: mode = ThemeMode.dark; break;
-      case ThemeModeOption.system: mode = ThemeMode.system; break;
+      case ThemeModeOption.light:
+        mode = ThemeMode.light;
+        break;
+      case ThemeModeOption.dark:
+        mode = ThemeMode.dark;
+        break;
+      case ThemeModeOption.system:
+        mode = ThemeMode.system;
+        break;
     }
 
     return MaterialApp(
@@ -88,7 +103,9 @@ class JulesApp extends StatelessWidget {
       themeMode: mode,
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
-          return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
+          return auth.isAuthenticated
+              ? const HomeScreen()
+              : const LoginScreen();
         },
       ),
     );

@@ -11,11 +11,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _controller = TextEditingController();
+  final _nameController = TextEditingController();
+  final _apiKeyController = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _nameController.dispose();
+    _apiKeyController.dispose();
     super.dispose();
   }
 
@@ -64,23 +66,49 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Enter your API key to get started",
+                  "Add a named API key to get started",
                   style: TextStyle(color: AppColors.textMuted, fontSize: 14),
                 ),
                 const SizedBox(height: 32),
                 TextField(
-                  controller: _controller,
-                  obscureText: true,
+                  controller: _nameController,
                   decoration: InputDecoration(
-                    hintText: "JULES_API_KEY",
-                    hintStyle: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.3)),
+                    hintText: "Account name",
+                    hintStyle: TextStyle(
+                      color: AppColors.textMuted.withValues(alpha: 0.3),
+                    ),
                     filled: true,
                     fillColor: Colors.black.withValues(alpha: 0.2),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _apiKeyController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: "JULES_API_KEY",
+                    hintStyle: TextStyle(
+                      color: AppColors.textMuted.withValues(alpha: 0.3),
+                    ),
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.2),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                   style: const TextStyle(color: Colors.white),
                 ),
@@ -90,8 +118,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (_controller.text.isNotEmpty) {
-                        context.read<AuthProvider>().login(_controller.text);
+                      if (_apiKeyController.text.trim().isNotEmpty) {
+                        context.read<AuthProvider>().login(
+                          _apiKeyController.text,
+                          name: _nameController.text,
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -99,11 +130,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
                       ),
                       elevation: 0,
                     ),
-                    child: const Text("Continue", style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      "Add account",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

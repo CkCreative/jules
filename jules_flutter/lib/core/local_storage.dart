@@ -16,54 +16,69 @@ class LocalStorageService {
   }
 
   // Session operations
-  List<Session> getSessions() {
+  List<Session> getSessions({String? accountId}) {
     final box = Hive.box(sessionsBoxName);
-    final sessions = box.values
+    final sessions = box.keys
+        .where((key) => key is String && _isAccountKey(key, accountId))
+        .map((key) => box.get(key))
+        .where((item) => item != null)
         .map((item) => Session.fromJson(Map<String, dynamic>.from(item)))
         .toList();
     sessions.sort((a, b) => b.createTime.compareTo(a.createTime));
     return sessions;
   }
 
-  Future<void> saveSessions(List<Session> sessions) async {
+  Future<void> saveSessions(List<Session> sessions, {String? accountId}) async {
     final box = Hive.box(sessionsBoxName);
     final Map<String, dynamic> data = {
-      for (var s in sessions) s.id: s.toJson(),
+      for (var s in sessions) _scopedKey(s.id, accountId): s.toJson(),
     };
     await box.putAll(data);
   }
 
-  Future<void> saveSession(Session session) async {
+  Future<void> saveSession(Session session, {String? accountId}) async {
     final box = Hive.box(sessionsBoxName);
-    await box.put(session.id, session.toJson());
+    await box.put(_scopedKey(session.id, accountId), session.toJson());
   }
 
-  bool isSessionsHistoryComplete() {
-    return Hive.box(
-          metadataBoxName,
-        ).get(sessionsHistoryCompleteKey, defaultValue: false)
+  bool isSessionsHistoryComplete({String? accountId}) {
+    return Hive.box(metadataBoxName).get(
+          _scopedKey(sessionsHistoryCompleteKey, accountId),
+          defaultValue: false,
+        )
         as bool;
   }
 
-  Future<void> setSessionsHistoryComplete(bool isComplete) async {
-    await Hive.box(metadataBoxName).put(sessionsHistoryCompleteKey, isComplete);
+  Future<void> setSessionsHistoryComplete(
+    bool isComplete, {
+    String? accountId,
+  }) async {
+    await Hive.box(
+      metadataBoxName,
+    ).put(_scopedKey(sessionsHistoryCompleteKey, accountId), isComplete);
   }
 
-  bool isSourcesHistoryComplete() {
-    return Hive.box(
-          metadataBoxName,
-        ).get(sourcesHistoryCompleteKey, defaultValue: false)
+  bool isSourcesHistoryComplete({String? accountId}) {
+    return Hive.box(metadataBoxName).get(
+          _scopedKey(sourcesHistoryCompleteKey, accountId),
+          defaultValue: false,
+        )
         as bool;
   }
 
-  Future<void> setSourcesHistoryComplete(bool isComplete) async {
-    await Hive.box(metadataBoxName).put(sourcesHistoryCompleteKey, isComplete);
+  Future<void> setSourcesHistoryComplete(
+    bool isComplete, {
+    String? accountId,
+  }) async {
+    await Hive.box(
+      metadataBoxName,
+    ).put(_scopedKey(sourcesHistoryCompleteKey, accountId), isComplete);
   }
 
   // Activity operations
-  List<Activity> getActivities(String sessionId) {
+  List<Activity> getActivities(String sessionId, {String? accountId}) {
     final box = Hive.box(activitiesBoxName);
-    final data = box.get(sessionId);
+    final data = box.get(_scopedKey(sessionId, accountId));
     if (data == null) return [];
     final activities = (data as List)
         .map((item) => Activity.fromJson(Map<String, dynamic>.from(item)))
@@ -74,17 +89,36 @@ class LocalStorageService {
 
   Future<void> saveActivities(
     String sessionId,
-    List<Activity> activities,
-  ) async {
+    List<Activity> activities, {
+    String? accountId,
+  }) async {
     final box = Hive.box(activitiesBoxName);
-    final merged = _mergeActivities(getActivities(sessionId), activities);
-    await box.put(sessionId, merged.map((a) => a.toJson()).toList());
+    final merged = _mergeActivities(
+      getActivities(sessionId, accountId: accountId),
+      activities,
+    );
+    await box.put(
+      _scopedKey(sessionId, accountId),
+      merged.map((a) => a.toJson()).toList(),
+    );
   }
 
   Future<void> clear() async {
     await Hive.box(sessionsBoxName).clear();
     await Hive.box(activitiesBoxName).clear();
     await Hive.box(metadataBoxName).clear();
+  }
+
+  String _scopedKey(String key, String? accountId) {
+    if (accountId == null || accountId.isEmpty) return key;
+    return '$accountId::$key';
+  }
+
+  bool _isAccountKey(String key, String? accountId) {
+    if (accountId == null || accountId.isEmpty) {
+      return !key.contains('::');
+    }
+    return key.startsWith('$accountId::');
   }
 
   List<Activity> _mergeActivities(

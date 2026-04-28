@@ -12,6 +12,7 @@ class ChatProvider extends ChangeNotifier {
   StreamSubscription? _connectivitySubscription;
   ApiClient? _apiClient;
   String? _apiKey;
+  String? _accountId;
   JulesRepository? _repository;
   Timer? _refreshTimer;
   Future<void>? _sessionsRefresh;
@@ -124,8 +125,10 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  void updateClient(ApiClient client) {
-    if (_apiKey == client.apiKey && _repository != null) {
+  void updateClient(ApiClient client, String accountId) {
+    if (_apiKey == client.apiKey &&
+        _accountId == accountId &&
+        _repository != null) {
       client.dispose();
       return;
     }
@@ -133,6 +136,33 @@ class ChatProvider extends ChangeNotifier {
     _apiClient?.dispose();
     _apiClient = client;
     _apiKey = client.apiKey;
+    _accountId = accountId;
+    _resetForAccountChange();
+
+    if (_local != null) {
+      _isHistoryIndexComplete = _local!.isSessionsHistoryComplete(
+        accountId: accountId,
+      );
+      _isSourcesIndexComplete = _local!.isSourcesHistoryComplete(
+        accountId: accountId,
+      );
+      _repository = JulesRepository(client, _local!, accountId: accountId);
+      _loadSessions();
+      _loadSources();
+    }
+  }
+
+  void clearClient() {
+    if (_apiClient == null && _repository == null && _apiKey == null) return;
+    _apiClient?.dispose();
+    _apiClient = null;
+    _apiKey = null;
+    _accountId = null;
+    _resetForAccountChange();
+    notifyListeners();
+  }
+
+  void _resetForAccountChange() {
     _refreshTimer?.cancel();
     _refreshTimer = null;
     _sessionsRefresh = null;
@@ -149,15 +179,20 @@ class ChatProvider extends ChangeNotifier {
     _hasUserSelectedView = false;
     _isHistoryIndexing = false;
     _isSourcesIndexing = false;
-
-    if (_local != null) {
-      _isHistoryIndexComplete = _local!.isSessionsHistoryComplete();
-      _isSourcesIndexComplete = _local!.isSourcesHistoryComplete();
-      _repository = JulesRepository(client, _local!);
-      _loadSessions();
-      _loadSources();
-    }
+    _sessions = [];
+    _sources = [];
+    _sidebarSearchQuery = '';
+    _currentSession = null;
+    _draftRepo = null;
+    _isLoading = false;
+    _isSyncing = false;
+    _isHistoryIndexComplete = false;
+    _isSourcesIndexComplete = false;
+    _errorMessage = null;
+    _repository = null;
   }
+
+  bool _isCurrentRepo(JulesRepository repo) => identical(_repository, repo);
 
   @override
   void dispose() {
@@ -168,9 +203,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _loadSources() async {
-    if (_repository == null) return;
+    final repo = _repository;
+    if (repo == null) return;
     try {
-      final response = await _repository!.syncSources();
+      final response = await repo.syncSources();
+      if (!_isCurrentRepo(repo)) return;
       _sources = _mergeSources(_sources, response.sources);
       _hasSourcesHeadSnapshot = true;
       await _setSourcesBackfillState(response.nextPageToken);
@@ -204,6 +241,7 @@ class ChatProvider extends ChangeNotifier {
 
     // 1. Load Local Data First (Instant)
     _sessions = await repo.getSessions();
+    if (!_isCurrentRepo(repo)) return;
     _restoreCurrentSessionFromList(
       allowDefaultSelection: !_hasUserSelectedView,
     );
@@ -214,6 +252,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await repo.syncSessions(pageSize: 100);
+      if (!_isCurrentRepo(repo)) return;
       _sessions = _mergeSessions(_sessions, response.sessions);
       _hasSessionHeadSnapshot = true;
       await _setHistoryBackfillState(response.nextPageToken);
@@ -272,14 +311,14 @@ class ChatProvider extends ChangeNotifier {
           session.id,
           pageSize: 100,
         );
-        if (_currentSession?.id == session.id) {
+        if (_isCurrentRepo(repo) && _currentSession?.id == session.id) {
           var updatedSession = _currentSession!.copyWith(
             activities: freshActivities,
           );
           if (!_isOngoing(updatedSession)) {
-            updatedSession = (await repo.getSession(
-              session.id,
-            )).copyWith(activities: freshActivities);
+            final freshSession = await repo.getSession(session.id);
+            if (!_isCurrentRepo(repo)) return;
+            updatedSession = freshSession.copyWith(activities: freshActivities);
           }
           if (_currentSession?.id == session.id) {
             _currentSession = updatedSession;
@@ -358,10 +397,12 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> createSession(String prompt, String title, String repo) async {
-    if (_repository == null) return;
+    final repository = _repository;
+    if (repository == null) return;
     _setLoading(true);
     try {
-      final newSession = await _repository!.createSession(prompt, title, repo);
+      final newSession = await repository.createSession(prompt, title, repo);
+      if (!_isCurrentRepo(repository)) return;
       _hasUserSelectedView = true;
       _sessions.insert(0, newSession);
       _currentSession = newSession;
@@ -376,11 +417,13 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> approvePlan() async {
-    if (_currentSession == null || _repository == null) return;
+    final repository = _repository;
+    if (_currentSession == null || repository == null) return;
     _setLoading(true);
     try {
       final sessionId = _currentSession!.id;
-      await _repository!.approvePlan(sessionId);
+      await repository.approvePlan(sessionId);
+      if (!_isCurrentRepo(repository)) return;
       await _refreshAfterMutation(sessionId);
     } catch (e) {
       _errorMessage = "Failed to approve plan: $e";
@@ -390,7 +433,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> sendMessage(String content) async {
-    if (_currentSession == null || _repository == null) return;
+    final repository = _repository;
+    if (_currentSession == null || repository == null) return;
 
     // Optimistic UI Update
     final optimisticActivity = Activity(
@@ -408,7 +452,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repository!.sendMessage(sessionId, content);
+      await repository.sendMessage(sessionId, content);
+      if (!_isCurrentRepo(repository)) return;
       await _refreshAfterMutation(sessionId);
     } catch (e) {
       _errorMessage = "Failed to send message: $e";
@@ -451,6 +496,7 @@ class ChatProvider extends ChangeNotifier {
 
     // 1. Show Local Activities (Instant)
     final localActivities = await repo.getSessionActivities(sessionId);
+    if (!_isCurrentRepo(repo)) return;
     if (_currentSession?.id == sessionId &&
         localActivities.isNotEmpty &&
         !_hasPendingActivities(_currentSession!.activities)) {
@@ -463,7 +509,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final freshActivities = await repo.syncSessionActivities(sessionId);
-      if (_currentSession?.id != sessionId ||
+      if (!_isCurrentRepo(repo) ||
+          _currentSession?.id != sessionId ||
           refreshVersion != _currentSessionRefreshVersion) {
         return;
       }
@@ -510,6 +557,7 @@ class ChatProvider extends ChangeNotifier {
     // 1. Sync session list to get status updates for all sessions
     try {
       final response = await repo.syncSessions(pageSize: 100);
+      if (!_isCurrentRepo(repo)) return;
       _sessions = _mergeSessions(_sessions, response.sessions);
       _hasSessionHeadSnapshot = true;
       await _setHistoryBackfillState(response.nextPageToken);
@@ -526,6 +574,7 @@ class ChatProvider extends ChangeNotifier {
     if (session != null && _isOngoing(session)) {
       try {
         final freshActivities = await repo.syncSessionActivities(session.id);
+        if (!_isCurrentRepo(repo)) return;
 
         // Re-check current session hasn't changed
         if (_currentSession?.id == session.id) {
@@ -602,7 +651,10 @@ class ChatProvider extends ChangeNotifier {
     if (_historyBackfillToken == null) {
       if (!_isHistoryIndexComplete) {
         _isHistoryIndexComplete = true;
-        await _local?.setSessionsHistoryComplete(true);
+        await _local?.setSessionsHistoryComplete(
+          true,
+          accountId: repo.accountId,
+        );
         notifyListeners();
       }
       return;
@@ -616,6 +668,7 @@ class ChatProvider extends ChangeNotifier {
           pageSize: 100,
           pageToken: _historyBackfillToken,
         );
+        if (!_isCurrentRepo(repo)) return;
         _sessions = _mergeSessions(_sessions, response.sessions);
         await _setHistoryBackfillState(response.nextPageToken);
         _restoreCurrentSessionFromList(allowDefaultSelection: false);
@@ -654,7 +707,10 @@ class ChatProvider extends ChangeNotifier {
     if (_sourcesBackfillToken == null) {
       if (!_isSourcesIndexComplete) {
         _isSourcesIndexComplete = true;
-        await _local?.setSourcesHistoryComplete(true);
+        await _local?.setSourcesHistoryComplete(
+          true,
+          accountId: repo.accountId,
+        );
         notifyListeners();
       }
       return;
@@ -668,6 +724,7 @@ class ChatProvider extends ChangeNotifier {
           pageSize: 100,
           pageToken: _sourcesBackfillToken,
         );
+        if (!_isCurrentRepo(repo)) return;
         _sources = _mergeSources(_sources, response.sources);
         await _setSourcesBackfillState(response.nextPageToken);
         notifyListeners();
@@ -688,7 +745,10 @@ class ChatProvider extends ChangeNotifier {
       _historyBackfillToken = null;
       if (!_isHistoryIndexComplete) {
         _isHistoryIndexComplete = true;
-        await _local?.setSessionsHistoryComplete(true);
+        await _local?.setSessionsHistoryComplete(
+          true,
+          accountId: _repository?.accountId,
+        );
       }
       return;
     }
@@ -702,7 +762,10 @@ class ChatProvider extends ChangeNotifier {
       _sourcesBackfillToken = null;
       if (!_isSourcesIndexComplete) {
         _isSourcesIndexComplete = true;
-        await _local?.setSourcesHistoryComplete(true);
+        await _local?.setSourcesHistoryComplete(
+          true,
+          accountId: _repository?.accountId,
+        );
       }
       return;
     }

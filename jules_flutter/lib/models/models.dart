@@ -1,3 +1,44 @@
+class JulesAccount {
+  final String id;
+  final String name;
+  final String apiKey;
+  final DateTime createdAt;
+
+  JulesAccount({
+    required this.id,
+    required this.name,
+    required this.apiKey,
+    required this.createdAt,
+  });
+
+  factory JulesAccount.fromJson(Map<String, dynamic> json) {
+    return JulesAccount(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? 'Jules Account',
+      apiKey: json['apiKey'] as String,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'apiKey': apiKey,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  JulesAccount copyWith({String? name, String? apiKey}) {
+    return JulesAccount(
+      id: id,
+      name: name ?? this.name,
+      apiKey: apiKey ?? this.apiKey,
+      createdAt: createdAt,
+    );
+  }
+}
+
 enum SessionState {
   queued,
   planning,

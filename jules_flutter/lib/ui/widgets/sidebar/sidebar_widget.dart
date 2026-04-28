@@ -47,6 +47,123 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     }
   }
 
+  Future<void> _showAddAccountDialog(BuildContext context) async {
+    final nameController = TextEditingController();
+    final apiKeyController = TextEditingController();
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text("Add account"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: "Account name"),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: apiKeyController,
+                  decoration: const InputDecoration(labelText: "API key"),
+                  obscureText: true,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (apiKeyController.text.trim().isEmpty) return;
+                  context.read<AuthProvider>().login(
+                    apiKeyController.text,
+                    name: nameController.text,
+                  );
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text("Add"),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      apiKeyController.dispose();
+    }
+  }
+
+  Future<bool> _confirmAccountAction(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    bool destructive = false,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text("Cancel"),
+                ),
+                FilledButton(
+                  style: destructive
+                      ? FilledButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onError,
+                        )
+                      : null,
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(confirmLabel),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, String accountName) async {
+    final confirmed = await _confirmAccountAction(
+      context,
+      title: "Sign out?",
+      message:
+          "This will close $accountName on this device. Your saved accounts stay available unless you remove them.",
+      confirmLabel: "Sign out",
+    );
+    if (!confirmed || !context.mounted) return;
+    await context.read<AuthProvider>().logout();
+  }
+
+  Future<void> _confirmRemoveAccount(
+    BuildContext context,
+    String accountId,
+    String accountName,
+  ) async {
+    final confirmed = await _confirmAccountAction(
+      context,
+      title: "Remove account?",
+      message:
+          "This removes $accountName and its saved API key from this device. Cached account data is left untouched.",
+      confirmLabel: "Remove",
+      destructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
+    await context.read<AuthProvider>().deleteAccount(accountId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ChatProvider>();
@@ -222,6 +339,17 @@ class _SidebarWidgetState extends State<SidebarWidget> {
   }
 
   Widget _buildProfileSection(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final activeAccount = auth.activeAccount;
+    final accountName = activeAccount?.name ?? "No account";
+    final initials = accountName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part[0].toUpperCase())
+        .join();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -235,7 +363,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.1),
             child: Text(
-              "MC",
+              initials.isEmpty ? "JA" : initials,
               style: TextStyle(
                 fontSize: 10,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -243,20 +371,87 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              "User Account",
-              style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+              accountName,
+              style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          IconButton(
-            onPressed: () => context.read<AuthProvider>().logout(),
+          PopupMenuButton<String>(
+            tooltip: "Account menu",
             icon: Icon(
-              Icons.logout,
-              size: 14,
+              Icons.account_circle_outlined,
+              size: 18,
               color: Theme.of(context).textTheme.bodySmall?.color,
             ),
+            onSelected: (value) {
+              if (value == '__add__') {
+                _showAddAccountDialog(context);
+              } else if (value == '__logout__') {
+                _confirmSignOut(context, accountName);
+              } else if (value == '__delete__' && activeAccount != null) {
+                _confirmRemoveAccount(
+                  context,
+                  activeAccount.id,
+                  activeAccount.name,
+                );
+              } else {
+                context.read<AuthProvider>().switchAccount(value);
+              }
+            },
+            itemBuilder: (context) => [
+              for (final account in auth.accounts)
+                PopupMenuItem(
+                  value: account.id,
+                  child: Row(
+                    children: [
+                      Icon(
+                        account.id == activeAccount?.id
+                            ? Icons.check
+                            : Icons.account_circle_outlined,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          account.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: '__add__',
+                child: ListTile(
+                  dense: true,
+                  leading: Icon(Icons.add, size: 18),
+                  title: Text("Add account"),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (activeAccount != null)
+                const PopupMenuItem(
+                  value: '__delete__',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.delete_outline, size: 18),
+                    title: Text("Remove current"),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              const PopupMenuItem(
+                value: '__logout__',
+                child: ListTile(
+                  dense: true,
+                  leading: Icon(Icons.logout, size: 18),
+                  title: Text("Sign out"),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),

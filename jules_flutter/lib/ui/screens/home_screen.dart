@@ -254,15 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: MouseRegion(
         cursor: SystemMouseCursors.resizeLeftRight,
         child: Container(
-          width: 6,
+          width: 8, // Slightly wider for easier grabbing
           color: Colors.transparent,
-          child: Center(
-            child: Container(
-              width: 1,
-              height: double.infinity,
-              color: Theme.of(context).dividerColor,
-            ),
-          ),
         ),
       ),
     );
@@ -314,8 +307,11 @@ class _HomeScreenTopBar extends StatelessWidget {
         children: [
           Expanded(
             child: DragToMoveArea(
-              child: Row(
-                children: [
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                child: Row(
+                  children: [
                   if (isMobile)
                     IconButton(
                       onPressed: () => Scaffold.of(context).openDrawer(),
@@ -407,7 +403,8 @@ class _HomeScreenTopBar extends StatelessWidget {
               ),
             ),
           ),
-          Row(
+        ),
+        Row(
             children: [
               IconButton(
                 onPressed: onToggleDiffPanel,

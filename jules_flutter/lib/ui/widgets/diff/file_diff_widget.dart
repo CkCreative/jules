@@ -16,13 +16,13 @@ class FileDiffWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFileHeader(filename),
+        _buildFileHeader(context, filename),
         _buildDiffLines(context, lines),
       ],
     );
   }
 
-  Widget _buildFileHeader(String filename) {
+  Widget _buildFileHeader(BuildContext context, String filename) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -75,14 +75,17 @@ class FileDiffWidget extends StatelessWidget {
         ? '' 
         : (line.type == _LineType.added ? line.newLineNumber : line.oldLineNumber)?.toString() ?? '';
 
+    final bool isDiff = line.type == _LineType.added || line.type == _LineType.removed;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: bgColor,
         border: Border(
-          left: (line.type == _LineType.added || line.type == _LineType.removed)
-              ? BorderSide(color: lineNumberColor!, width: 2)
-              : BorderSide.none,
+          left: BorderSide(
+            color: isDiff ? lineNumberColor! : Colors.transparent,
+            width: 3,
+          ),
         ),
       ),
       child: Row(
