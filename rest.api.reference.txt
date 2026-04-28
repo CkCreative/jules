@@ -1,0 +1,13 @@
+https://jules.google/docs/api/reference/
+
+https://jules.google/docs/api/reference/overview
+
+https://jules.google/docs/api/reference/authentication
+
+https://jules.google/docs/api/reference/sessions
+
+https://jules.google/docs/api/reference/activities
+
+https://jules.google/docs/api/reference/sources
+
+https://jules.google/docs/api/reference/types

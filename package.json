@@ -1,0 +1,18 @@
+{
+  "name": "jules-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd jules_flutter && flutter run -d macos",
+    "dev:macos": "cd jules_flutter && flutter run -d macos",
+    "dev:ios": "node scripts/flutter-run-ios-device.mjs",
+    "dev:simulator": "node scripts/flutter-run-ios-simulator.mjs",
+    "dev:android": "node scripts/flutter-run-android.mjs",
+    "release:ios": "node scripts/flutter-run-ios-device.mjs --release",
+    "release:android": "node scripts/flutter-run-android.mjs --release",
+    "analyze": "cd jules_flutter && flutter analyze",
+    "build:macos": "cd jules_flutter && flutter build macos",
+    "build:ios": "cd jules_flutter && flutter build ios",
+    "build:android": "cd jules_flutter && flutter build apk"
+  }
+}

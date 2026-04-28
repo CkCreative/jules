@@ -1,0 +1,43 @@
+# Dependency directories
+node_modules/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# Build artifacts
+build/
+bin/
+dist/
+/jules_flutter/build/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sensitive files
+api_key.txt
+.env
+*.env.*
+*.pem
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Flutter specific (additional)
+/jules_flutter/.dart_tool/
+/jules_flutter/.flutter-plugins
+/jules_flutter/.flutter-plugins-dependencies
+/jules_flutter/.pub-cache/
+/jules_flutter/.pub/
