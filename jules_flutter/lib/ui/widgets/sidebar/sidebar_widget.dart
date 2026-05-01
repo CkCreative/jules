@@ -56,39 +56,61 @@ class _SidebarWidgetState extends State<SidebarWidget> {
         builder: (dialogContext) {
           return AlertDialog(
             title: const Text("Add account"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: "Account name"),
-                  autofocus: true,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: apiKeyController,
-                  decoration: const InputDecoration(labelText: "API key"),
-                  obscureText: true,
-                ),
-              ],
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Enter your Gemini API key to connect your account. Your keys are stored securely in local storage.",
+                    style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: "Account name",
+                      hintText: "e.g. Work Account",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      isDense: true,
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: apiKeyController,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: "API key",
+                      hintText: "AIza...",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      isDense: true,
+                    ),
+                    obscureText: true,
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: const Text("Cancel"),
               ),
+              const SizedBox(width: 8),
               FilledButton(
                 onPressed: () {
                   if (apiKeyController.text.trim().isEmpty) return;
                   context.read<AuthProvider>().login(
-                    apiKeyController.text,
-                    name: nameController.text,
-                  );
+                        apiKeyController.text,
+                        name: nameController.text,
+                      );
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text("Add"),
+                child: const Text("Add account"),
               ),
             ],
+            actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           );
         },
       );
@@ -110,25 +132,31 @@ class _SidebarWidgetState extends State<SidebarWidget> {
           builder: (dialogContext) {
             return AlertDialog(
               title: Text(title),
-              content: Text(message),
+              content: SizedBox(
+                width: 320,
+                child: Text(
+                  message,
+                  style: const TextStyle(fontSize: 14, height: 1.4),
+                ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
                   child: const Text("Cancel"),
                 ),
+                const SizedBox(width: 8),
                 FilledButton(
                   style: destructive
                       ? FilledButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.error,
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.onError,
+                          foregroundColor: Theme.of(context).colorScheme.onError,
                         )
                       : null,
                   onPressed: () => Navigator.of(dialogContext).pop(true),
                   child: Text(confirmLabel),
                 ),
               ],
+              actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             );
           },
         ) ??

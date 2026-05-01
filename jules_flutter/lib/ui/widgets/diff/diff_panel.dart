@@ -45,20 +45,22 @@ class DiffPanel extends StatelessWidget {
               ),
             )
           else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, changeSets, provider),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    itemCount: changeSets.length,
-                    itemBuilder: (context, index) {
-                      return FileDiffWidget(changeSet: changeSets[index]);
-                    },
+            Positioned.fill(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context, changeSets, provider),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      itemCount: changeSets.length,
+                      itemBuilder: (context, index) {
+                        return FileDiffWidget(changeSet: changeSets[index]);
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
         ],
       ),

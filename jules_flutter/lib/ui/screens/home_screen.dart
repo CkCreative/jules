@@ -293,152 +293,149 @@ class _HomeScreenTopBar extends StatelessWidget {
 
     return Container(
       height: AppConstants.headerHeight,
-      padding: EdgeInsets.only(
-        left: (!isSidebarOpen && !isMobile) ? 80 : 16,
-        right: 16,
-      ),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: [
-          Expanded(
-            child: DragToMoveArea(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                child: Row(
-                  children: [
-                  if (isMobile)
-                    IconButton(
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                      icon: const Icon(
-                        Icons.menu,
-                        size: 18,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  if (!isSidebarOpen && !isMobile)
-                    IconButton(
-                      onPressed: onOpenSidebar,
-                      icon: const Icon(
-                        Icons.dock,
-                        size: 18,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  if (!isSidebarOpen && !isMobile) const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      displayTitle,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (session != null) ...[
-                    const SizedBox(width: 12),
-                    _buildStateBadge(session.state),
-                  ],
-                  if (draftRepo != null && session == null) ...[
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: Colors.blue.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: const Text(
-                        "DRAFT",
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (isSyncing) ...[
-                    const SizedBox(width: 12),
-                    const SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                  if (!isMobile && displayRepo != null) ...[
-                    const SizedBox(width: 12),
-                    const Icon(
-                      Icons.folder,
-                      size: 14,
+          const Positioned.fill(child: DragToMoveArea(child: SizedBox.expand())),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                if (isMobile)
+                  IconButton(
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                    icon: const Icon(
+                      Icons.menu,
+                      size: 18,
                       color: AppColors.textMuted,
                     ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        displayRepo,
-                        style: const TextStyle(
-                          fontSize: 13,
+                  ),
+                if (!isSidebarOpen && !isMobile)
+                  IconButton(
+                    onPressed: onOpenSidebar,
+                    icon: const Icon(
+                      Icons.dock,
+                      size: 18,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          displayTitle,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (session != null) ...[
+                        const SizedBox(width: 12),
+                        _buildStateBadge(session.state),
+                      ],
+                      if (draftRepo != null && session == null) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: Colors.blue.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: const Text(
+                            "DRAFT",
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (isSyncing) ...[
+                        const SizedBox(width: 12),
+                        const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                      if (!isMobile && displayRepo != null) ...[
+                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.folder,
+                          size: 14,
                           color: AppColors.textMuted,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            displayRepo,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textMuted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: onToggleDiffPanel,
+                      icon: Icon(
+                        isDiffPanelVisible ? Icons.splitscreen : Icons.fullscreen,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                      tooltip: "Toggle Diff Panel",
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTopBarButton(
+                      context,
+                      "New thread",
+                      icon: Icons.add,
+                      onTap: () => context.read<ChatProvider>().startNewThread(null),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTopBarButton(
+                      context,
+                      "Refresh",
+                      icon: Icons.refresh,
+                      onTap: () => context.read<ChatProvider>().refreshSessions(),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: onOpenSettings,
+                      icon: const Icon(
+                        Icons.settings,
+                        size: 18,
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ),
-        Row(
-            children: [
-              IconButton(
-                onPressed: onToggleDiffPanel,
-                icon: Icon(
-                  isDiffPanelVisible ? Icons.splitscreen : Icons.fullscreen,
-                  size: 18,
-                  color: AppColors.textMuted,
-                ),
-                tooltip: "Toggle Diff Panel",
-              ),
-              const SizedBox(width: 8),
-              _buildTopBarButton(
-                context,
-                "New thread",
-                icon: Icons.add,
-                onTap: () => context.read<ChatProvider>().startNewThread(null),
-              ),
-              const SizedBox(width: 8),
-              _buildTopBarButton(
-                context,
-                "Refresh",
-                icon: Icons.refresh,
-                onTap: () => context.read<ChatProvider>().refreshSessions(),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: onOpenSettings,
-                icon: const Icon(
-                  Icons.settings,
-                  size: 18,
-                  color: AppColors.textMuted,
-                ),
-              ),
-            ],
           ),
         ],
       ),

@@ -116,22 +116,59 @@ class _ThemeModeDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeMode = context.select((SettingsProvider s) => s.themeMode);
 
-    return DropdownButton<ThemeModeOption>(
-      value: themeMode,
-      underline: const SizedBox(),
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 13,
-      ),
-      items: ThemeModeOption.values.map((mode) {
-        return DropdownMenuItem(
-          value: mode,
-          child: Text(mode.name[0].toUpperCase() + mode.name.substring(1)),
+    return MenuAnchor(
+      builder: (context, controller, child) {
+        return InkWell(
+          onTap: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  themeMode.name[0].toUpperCase() + themeMode.name.substring(1),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.keyboard_arrow_down, size: 14),
+              ],
+            ),
+          ),
+        );
+      },
+      menuChildren: ThemeModeOption.values.map((mode) {
+        return MenuItemButton(
+          onPressed: () => context.read<SettingsProvider>().setThemeMode(mode),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Icon(
+                  mode == themeMode ? Icons.check : null,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: mode == themeMode ? 8 : 22),
+                Text(
+                  mode.name[0].toUpperCase() + mode.name.substring(1),
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+          ),
         );
       }).toList(),
-      onChanged: (mode) {
-        if (mode != null) context.read<SettingsProvider>().setThemeMode(mode);
-      },
     );
   }
 }
