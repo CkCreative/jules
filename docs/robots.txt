@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ckcreative.github.io/flutter_native_jules/sitemap.xml
+Sitemap: https://jules.drmhse.com/sitemap.xml

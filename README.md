@@ -2,7 +2,7 @@
 
 A polished Flutter client for the Jules API, built for reviewing sessions, chatting with the agent, and inspecting generated code changes in a native app experience.
 
-Website: [Jules documentation](https://ckcreative.github.io/flutter_native_jules/)
+Website: [Jules documentation](https://jules.drmhse.com/)
 
 ## Screenshots
 

@@ -10,10 +10,10 @@ This directory is a static documentation site for GitHub Pages and search indexi
 4. Choose `main` and `/docs`.
 5. Save.
 
-The expected project URL is:
+The project URL is:
 
 ```text
-https://ckcreative.github.io/flutter_native_jules/
+https://jules.drmhse.com/
 ```
 
 If the repository name changes, update these files:
