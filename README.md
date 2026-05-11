@@ -2,6 +2,8 @@
 
 A polished Flutter client for the Jules API, built for reviewing sessions, chatting with the agent, and inspecting generated code changes in a native app experience.
 
+Website: [Jules documentation](https://ckcreative.github.io/flutter_native_jules/)
+
 ## Screenshots
 
 <p align="center">
@@ -58,6 +60,12 @@ On first launch, add:
 2. Your Jules API key
 
 The default development command launches the macOS app. The Flutter project also includes iOS, Android, web, Windows, and Linux targets.
+
+## Documentation
+
+- [Docs site source](./docs/)
+
+The `docs/` directory is a static GitHub Pages site for Google indexing, social sharing, and a cleaner first landing page outside GitHub.
 
 ## Available Commands
 

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jules Flutter Client Documentation</title>
+    <meta
+      name="description"
+      content="Documentation for Jules, a native Flutter client for the Jules API with multi-account support, session history, chat, plan approval, and code diff review."
+    />
+    <link rel="canonical" href="https://ckcreative.github.io/flutter_native_jules/" />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Jules Flutter Client" />
+    <meta
+      property="og:description"
+      content="A native Flutter app for reviewing Jules sessions, chatting with the agent, approving plans, and inspecting generated code changes."
+    />
+    <meta property="og:url" content="https://ckcreative.github.io/flutter_native_jules/" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/CkCreative/flutter_native_jules/main/light_mode.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jules Flutter Client" />
+    <meta
+      name="twitter:description"
+      content="Native Flutter client for the Jules API, built for sessions, chat, plan approval, and code review."
+    />
+    <meta
+      name="twitter:image"
+      content="https://raw.githubusercontent.com/CkCreative/flutter_native_jules/main/light_mode.png"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Jules Flutter Client",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "macOS, iOS, Android, Windows, Linux, Web",
+        "description": "A native Flutter client for the Jules API with multi-account support, session history, chat, plan approval, and generated code diff review.",
+        "codeRepository": "https://github.com/CkCreative/flutter_native_jules",
+        "image": "https://raw.githubusercontent.com/CkCreative/flutter_native_jules/main/light_mode.png"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Jules documentation home">
+        <span class="brand-mark">J</span>
+        <span>Jules</span>
+      </a>
+      <nav aria-label="Documentation navigation">
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#workflow">Workflow</a>
+        <a href="https://github.com/CkCreative/flutter_native_jules">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Native Jules API client</p>
+          <h1>Review Jules sessions, chat with the agent, and inspect code changes from a Flutter app.</h1>
+          <p class="lede">
+            Jules is a polished cross-platform client for developers who want a native interface for
+            Jules sessions, plans, activity timelines, generated patches, and local account switching.
+          </p>
+          <div class="actions" aria-label="Primary actions">
+            <a class="button primary" href="https://github.com/CkCreative/flutter_native_jules">View repository</a>
+            <a class="button secondary" href="#quickstart">Start locally</a>
+          </div>
+        </div>
+        <div class="hero-media" aria-label="Jules app screenshots">
+          <img
+            class="screenshot light"
+            src="https://raw.githubusercontent.com/CkCreative/flutter_native_jules/main/light_mode.png"
+            alt="Jules Flutter client in light mode"
+          />
+          <img
+            class="screenshot dark"
+            src="https://raw.githubusercontent.com/CkCreative/flutter_native_jules/main/dark_mode.png"
+            alt="Jules Flutter client in dark mode"
+          />
+        </div>
+      </section>
+
+      <section class="band intro">
+        <div>
+          <h2>What Jules helps with</h2>
+          <p>
+            The app wraps the Jules API in a local-first desktop and mobile experience: add a named API
+            key, browse repositories returned by the sources API, start sessions, follow activity, approve
+            generated plans, continue conversations, and review generated patches.
+          </p>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <h2>Features</h2>
+        <div class="feature-grid">
+          <article>
+            <h3>Multi-account setup</h3>
+            <p>Store named Jules API keys locally and switch between accounts without rebuilding the app.</p>
+          </article>
+          <article>
+            <h3>Repository-first sessions</h3>
+            <p>Create new sessions against GitHub repositories returned by the Jules sources endpoint.</p>
+          </article>
+          <article>
+            <h3>Activity timeline</h3>
+            <p>Read user messages, agent responses, plan events, progress updates, and system activity.</p>
+          </article>
+          <article>
+            <h3>Plan approval</h3>
+            <p>Approve generated plans from the app when a session is waiting for review.</p>
+          </article>
+          <article>
+            <h3>Diff review</h3>
+            <p>Inspect generated change sets, patches, suggested commit messages, and command output.</p>
+          </article>
+          <article>
+            <h3>Local cache</h3>
+            <p>Keep sessions and activities responsive with Hive-backed local storage and background sync.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="quickstart" class="section split">
+        <div>
+          <h2>Quickstart</h2>
+          <p>
+            Install Flutter, clone the repository, fetch dependencies, and run the macOS client from the
+            repository root.
+          </p>
+        </div>
+        <pre><code>git clone https://github.com/CkCreative/flutter_native_jules.git
+cd flutter_native_jules
+cd jules_flutter
+flutter pub get
+cd ..
+npm run dev</code></pre>
+      </section>
+
+      <section class="section">
+        <h2>Available commands</h2>
+        <div class="command-table" role="table" aria-label="Jules commands">
+          <div role="row">
+            <code>npm run dev</code>
+            <span>Run the app on macOS.</span>
+          </div>
+          <div role="row">
+            <code>npm run dev:ios</code>
+            <span>Run on a connected iOS device.</span>
+          </div>
+          <div role="row">
+            <code>npm run dev:simulator</code>
+            <span>Run on the active iOS simulator.</span>
+          </div>
+          <div role="row">
+            <code>npm run dev:android</code>
+            <span>Run on Android.</span>
+          </div>
+          <div role="row">
+            <code>npm run analyze</code>
+            <span>Run Flutter static analysis.</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section workflow">
+        <h2>Typical workflow</h2>
+        <ol>
+          <li>Add an account name and Jules API key on first launch.</li>
+          <li>Sync repositories from the Jules sources API.</li>
+          <li>Start a session with a prompt and repository context.</li>
+          <li>Review the generated plan and approve it when ready.</li>
+          <li>Follow progress, continue the chat, and inspect generated diffs.</li>
+        </ol>
+      </section>
+
+      <section class="band cta">
+        <div>
+          <h2>Support the project</h2>
+          <p>
+            If Jules is useful, star the repository and share it with developers who want a native client
+            for Jules API workflows.
+          </p>
+        </div>
+        <a class="button primary" href="https://github.com/CkCreative/flutter_native_jules">Star on GitHub</a>
+      </section>
+    </main>
+
+    <footer>
+      <span>Jules Flutter Client</span>
+      <a href="https://github.com/CkCreative/flutter_native_jules">Repository</a>
+    </footer>
+  </body>
+</html>
